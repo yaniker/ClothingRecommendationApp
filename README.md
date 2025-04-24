@@ -16,10 +16,10 @@ These attributes are paired into labeled combinations for neural network trainin
 
 ## Results
 
-Test Accuracy: 1.00
-Precision: 1.00
-Recall: 1.00
-F1 Score: 1.00
+Test Accuracy: 1.00  
+Precision: 1.00  
+Recall: 1.00  
+F1 Score: 1.00  
 
 The analysis demonstrates:
 
