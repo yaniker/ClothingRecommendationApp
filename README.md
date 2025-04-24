@@ -15,6 +15,7 @@ Images are preprocessed and passed to a ViT + LLM, which returns structured JSON
 These attributes are paired into labeled combinations for neural network training, exported as .tflite.
 
 ## Results
+Labeled samples: 62  
 
 Test Accuracy: 1.00  
 Precision: 1.00  
