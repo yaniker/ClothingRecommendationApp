@@ -21,11 +21,11 @@ Precision: 1.00
 Recall: 1.00
 F1 Score: 1.00
 
-Analysis shows that:
-1. The system does not show the user combinations that the user would not like.
-2. The system does not miss combinations that the user would like, showing them 100% of the time.
+The analysis demonstrates:
 
-Therefore, satisfying the user requirements in performance.
+The system successfully filters out all combinations the user would dislike — no false positives.  
+It correctly includes all combinations the user would favor — no false negatives.  
+These results indicate that the system meets the user’s requirements with perfect performance on the test set.  
 
 # License
 
