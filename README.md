@@ -1,13 +1,13 @@
 # Clothing Recommendation App
 
-This app was developed for a specific user/client as demo and is a work in progress based on the user feedback.
+This app is a demo, developed for a specific user/client and is a work in progress based on the user feedback.
 
 ## Overview
 
-An Android app for recommending outfit pairings, combining a mobile front-end with a machine learning backend.  
+An Android app for recommending outfit pairings (currently top and bottom piece), combining a mobile front-end with a machine learning backend.  
 The system uses vision transformers (ViT) with LLM head to extract attributes from images.  
-These attributes are then used to train a deep neural network classifier that maps attributes to user preferences.  
-The model is converted to TensorFlow Lite and integrated into an Android app for local, on-device recommendations.
+These attributes are then used to train a deep neural network (DNN) to map attributes to user preferences.  
+Resulting DNN is converted to TensorFlow Lite and integrated into an Android app for local, on-device recommendations.
 
 ## Data Flow
 
