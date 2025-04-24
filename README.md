@@ -1,6 +1,6 @@
 # Clothing Recommendation App
 
-This app is a demo, developed for a specific user/client and is a work in progress based on the user feedback.
+This is the demo version for showcasing, developed for a specific user/client and is a work in progress based on the user feedback.
 
 ## Overview
 
@@ -34,4 +34,7 @@ This project is proprietary. All rights reserved. Commercial use is not permitte
 
 # Notes
 
-This project could be a great gift for your partner/friend so if you would like to use it for that end, reach out for permission please.
+This project could be a great gift for your partner/friend so if you would like to use it for that end only, you have my blessings. You will need:  
+1. Your own OpenAI API or open-source ViT and LLM.
+2. Your own assets.
+3. DNN trained on your assets.
