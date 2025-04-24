@@ -34,4 +34,4 @@ This project is proprietary. All rights reserved. Commercial use is not permitte
 
 # Notes
 
-This project could be a great gift for your partner so if you would like to use it for that end, reach out for permission please.
+This project could be a great gift for your partner/friend so if you would like to use it for that end, reach out for permission please.
