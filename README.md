@@ -1,22 +1,31 @@
 # Clothing Recommendation App
 
-An Android app for recommending outfit pairings. The system uses vision transformers (via OpenAI’s GPT-4o) to extract structured attributes from clothing images.  
-These attributes are then used to train a binary classifier that predicts compatibility between clothing items.  
+This app was developed for a specific user/client as demo and is a work in progress based on the user/client feedback.
+
+## Overview
+
+An Android app for recommending outfit pairings, combining a mobile front-end with a machine learning backend.  
+The system uses vision transformers (ViT) with LLM head to extract attributes from images.  
+These attributes are then used to train a deep neural network classifier that maps attributes to user preferences.  
 The model is converted to TensorFlow Lite and integrated into an Android app for local, on-device recommendations.
 
-# Overview
+## Data Flow
 
-This project combines a mobile front-end with a machine learning backend:
+Images are preprocessed and passed to a ViT + LLM, which returns structured JSON attributes.  
+These attributes are paired into labeled combinations for neural network training, exported as .tflite.
 
-The Android app presents outfit suggestions based on a TFLite model.
-A Python-based pipeline handles model training and data preparation.
-ViT with LLM head is used to generate structured attribute labels from images.
+## Results
 
-# Data Flow
+Test Accuracy: 1.00
+Precision: 1.00
+Recall: 1.00
+F1 Score: 1.00
 
-Images are preprocessed and passed to an LLM, which returns structured JSON attributes.  
-These attributes are paired into labeled combinations for training.  
-A small neural network is trained to predict compatibility, exported as .tflite, and embedded in the app.
+Analysis shows that:
+1. The system does not show the user combinations that the user would not like.
+2. The system does not miss combinations that the user would like, showing them 100% of the time.
+
+Therefore, satisfying the user requirements in performance.
 
 # License
 
