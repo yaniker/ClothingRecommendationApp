@@ -18,86 +18,18 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.material3.Text
 import androidx.compose.foundation.Image
 import androidx.compose.runtime.remember
-
-class MainActivity : ComponentActivity() {
-    private lateinit var outfitModel: OutfitModel
-
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        outfitModel = OutfitModel(this)
-
-        setContent {
-            WorkCombinationRecommendTheme {
-                Surface(
-                    modifier = Modifier.fillMaxSize(),
-                    color = MaterialTheme.colorScheme.background
-                ) {
-                    RecommendationScreen(outfitModel)
-                }
-            }
-        }
-    }
-}
-
-@Composable
-fun RecommendationScreen(model: OutfitModel) {
-    val context = LocalContext.current
-    val items = remember { loadClothingData(context) }
-
-    var topId by remember { mutableStateOf<String?>(null) }
-    var bottomId by remember { mutableStateOf<String?>(null) }
-    var message by remember { mutableStateOf("Tap to get recommendation") }
-
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(24.dp),
-        verticalArrangement = Arrangement.Center,
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        Button(onClick = {
-            val pairs = getShuffledPairs(items)
-            var found = false
-
-            for ((top, bottom) in pairs) {
-                val input = floatArrayOf(
-                    colorMap[top.color1]!!.toFloat(), patternMap[top.pattern]!!.toFloat(),
-                    materialMap[top.material]!!.toFloat(), fitMap[top.fit]!!.toFloat(),
-                    colorMap[bottom.color1]!!.toFloat(), patternMap[bottom.pattern]!!.toFloat(),
-                    materialMap[bottom.material]!!.toFloat(), fitMap[bottom.fit]!!.toFloat()
-                )
-                val result = model.predict(input)
-                if (result >= 0.5f) {
-                    topId = top.id
-                    bottomId = bottom.id
-                    message = "Showing recommended outfit"
-                    found = true
-                    break
-                }
-            }
-
-            if (!found) {
-                message = "No recommended combinations found"
-                topId = null
-                bottomId = null
-            }
-        }) {
-            Text("Get Recommendation")
-        }
-
-        Spacer(modifier = Modifier.height(20.dp))
-        Text(message)
-
-        topId?.let {
-            ImageFromAssets(fileName = "$it.jpeg")
-        }
-
-        bottomId?.let {
-            Spacer(modifier = Modifier.height(10.dp))
-            ImageFromAssets(fileName = "$it.jpeg")
-        }
-    }
-}
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.rememberNavController
+import androidx.navigation.NavController
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Checkroom
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.Scaffold
+import androidx.navigation.navArgument
+import androidx.compose.material.icons.filled.ArrowBack
 
 fun loadClothingData(context: Context): List<ClothingItem> {
     val json = context.assets.open("attributes_new.json").bufferedReader().use { it.readText() }
@@ -141,13 +73,139 @@ fun ImageFromAssets(fileName: String) {
         Bitmap.createBitmap(original, 0, 0, original.width, original.height, matrix, true)
     }
 
-    bitmap?.let {
-        Image(
-            bitmap = it.asImageBitmap(),
-            contentDescription = null,
+    Image(
+        bitmap = bitmap.asImageBitmap(),
+        contentDescription = null,
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(300.dp)
+    )
+}
+
+class MainActivity : ComponentActivity() {
+    private lateinit var outfitModel: OutfitModel
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        outfitModel = OutfitModel(this)
+
+        setContent {
+            WorkCombinationRecommendTheme {
+                val navController = rememberNavController()
+
+                NavHost(navController = navController, startDestination = "recommendation") {
+                    composable("recommendation?selected={selected}",
+                        arguments = listOf(navArgument("selected") {
+                            nullable = true
+                            defaultValue = null
+                        })
+                    ) { backStackEntry ->
+                        val selectedId = backStackEntry.arguments?.getString("selected")
+                        RecommendationScreen(outfitModel, navController, selectedId)
+                    }
+
+                    composable("wardrobe") {
+                        WardrobeScreen(navController)
+                    }
+                }
+            }
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun RecommendationScreen(
+    model: OutfitModel,
+    navController: NavController,
+    selectedId: String?
+){
+    val context = LocalContext.current
+    val items = remember { loadClothingData(context) }
+
+    var topItem by remember { mutableStateOf<ClothingItem?>(null) }
+    var bottomItem by remember { mutableStateOf<ClothingItem?>(null) }
+    var message by remember { mutableStateOf("Tap to get recommendation") }
+
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = { Text("Outfit Recommender") },
+                navigationIcon = {
+                    if (selectedId != null) {
+                        IconButton(onClick = { navController.navigate("wardrobe") }) {
+                            Icon(
+                                imageVector = Icons.Filled.ArrowBack,
+                                contentDescription = "Back to Wardrobe"
+                            )
+                        }
+                    }
+                },
+                actions = {
+                    IconButton(onClick = { navController.navigate("wardrobe") }) {
+                        Icon(
+                            imageVector = Icons.Default.Checkroom,
+                            contentDescription = "Wardrobe"
+                        )
+                    }
+                }
+            )
+        }
+    ) { paddingValues ->
+        Column(
             modifier = Modifier
-                .fillMaxWidth()
-                .height(300.dp)
-        )
+                .fillMaxSize()
+                .padding(paddingValues)
+                .padding(24.dp),
+            verticalArrangement = Arrangement.Center,
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+        Button(onClick = {
+            val pairs = if (selectedId != null) {
+                getShuffledPairs(items).filter { it.first.id == selectedId || it.second.id == selectedId }
+            } else {
+                getShuffledPairs(items)
+            }
+            var found = false
+
+            for ((top, bottom) in pairs) {
+                val input = floatArrayOf(
+                    colorMap[top.color1]!!.toFloat(), patternMap[top.pattern]!!.toFloat(),
+                    materialMap[top.material]!!.toFloat(), fitMap[top.fit]!!.toFloat(),
+                    colorMap[bottom.color1]!!.toFloat(), patternMap[bottom.pattern]!!.toFloat(),
+                    materialMap[bottom.material]!!.toFloat(), fitMap[bottom.fit]!!.toFloat()
+                )
+                val result = model.predict(input)
+                if (result >= 0.5f) {
+                    topItem = top
+                    bottomItem = bottom
+                    message = "Showing recommended outfit"
+                    found = true
+                    break
+                }
+
+            }
+
+            if (!found) {
+                message = "No recommended combinations found"
+                topItem = null
+                bottomItem = null
+            }
+        }) {
+            Text("Get Recommendation")
+        }
+
+        Spacer(modifier = Modifier.height(20.dp))
+        Text(message)
+
+        topItem?.let {
+            ImageFromAssets(fileName = "${it.type}/${it.id}.jpeg")
+        }
+
+        bottomItem?.let {
+            Spacer(modifier = Modifier.height(10.dp))
+            ImageFromAssets(fileName = "${it.type}/${it.id}.jpeg")
+        }
+        }
     }
 }
