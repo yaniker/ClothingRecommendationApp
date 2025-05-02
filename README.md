@@ -1,6 +1,6 @@
 # Clothing Recommendation App
 
-This is the demo version for showcasing, developed for a specific user/client and is a work in progress based on the user feedback.
+This is the demo version for showcasing, developed for a specific user and is a work in progress based on the user feedback.
 
 ## Overview
 
