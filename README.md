@@ -9,6 +9,20 @@ The system uses vision transformers (ViT) with LLM head to extract attributes fr
 These attributes are then used to train a deep neural network (DNN) to map attributes to user preferences.  
 Resulting DNN is converted to TensorFlow Lite and integrated into an Android app for local, on-device recommendations.
 
+## 📱 App Screenshots
+
+### Home Screen / Recommendation based on general user preference
+![Home Screen](screenshots/Screenshot_1.png)
+
+### Wardrobe View
+![Wardrobe](screenshots/Screenshot_2.png)
+
+### 👕 Select an Item
+![Item Picker](screenshots/Screenshot_3.png)
+
+### ✅ Recommended with User Preferred Item
+![Recommendations](screenshots/Screenshot_4.png)
+
 ## Data Flow
 
 Images are preprocessed and passed to a ViT + LLM, which returns structured JSON attributes.  
