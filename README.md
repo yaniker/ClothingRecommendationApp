@@ -17,10 +17,10 @@ Resulting DNN is converted to TensorFlow Lite and integrated into an Android app
 ### Wardrobe View
 <img src="screenshots/Screenshot_2.png" width="250"/>
 
-### 👕 Select an Item
+### Select an Item
 <img src="screenshots/Screenshot_3.png" width="250"/>
 
-### ✅ Recommended with User Preferred Item
+### Recommended with User Preferred Item
 <img src="screenshots/Screenshot_4.png" width="250"/>
 
 ## Data Flow
