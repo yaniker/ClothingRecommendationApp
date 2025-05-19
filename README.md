@@ -12,7 +12,7 @@ Resulting DNN is converted to TensorFlow Lite and integrated into an Android app
 ## 📱 App Screenshots
 
 ### Home Screen / Recommendation based on general user preference
-![Home Screen](<img src="screenshots/home_screen.png" width="300"/>)
+<img src="screenshots/Screenshot_1.png" width="300"/>
 
 ### Wardrobe View
 ![Wardrobe](screenshots/Screenshot_2.png)
