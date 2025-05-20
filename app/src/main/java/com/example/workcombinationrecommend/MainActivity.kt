@@ -29,6 +29,9 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.foundation.border
+
 import androidx.navigation.navArgument
 import androidx.compose.material.icons.filled.ArrowBack
 
@@ -97,7 +100,12 @@ class MainActivity : ComponentActivity() {
 
                 NavHost(navController = navController, startDestination = "recommendation") {
                     composable("recommendation") {
-                        RecommendationScreen(outfitModel, navController, selectedId) // pass state directly
+                        RecommendationScreen(
+                            model = outfitModel,
+                            navController = navController,
+                            selectedId = selectedId,
+                            onClearSelection = { selectedId = null } // ✅ This is now the mutation source
+                        )
                     }
                     composable("wardrobe") {
                         WardrobeScreen(navController, onConfirm = { id ->
@@ -116,7 +124,8 @@ class MainActivity : ComponentActivity() {
 fun RecommendationScreen(
     model: OutfitModel,
     navController: NavController,
-    selectedId: String?
+    selectedId: String?,
+    onClearSelection: () -> Unit
 ){
     val context = LocalContext.current
     val items = remember { loadClothingData(context) }
@@ -149,6 +158,39 @@ fun RecommendationScreen(
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
+            // 👕 Show selected item (if any) above the prompt
+            selectedId?.let { id ->
+                val selectedItem = items.find { it.id == id }
+                selectedItem?.let { item ->
+                    val context = LocalContext.current
+                    val assetManager = context.assets
+                    val bitmap = remember(item.id) {
+                        val input = assetManager.open("${item.type}/${item.id}.jpeg")
+                        val original = BitmapFactory.decodeStream(input)
+                        val matrix = android.graphics.Matrix().apply { postRotate(90f) }
+                        Bitmap.createBitmap(original, 0, 0, original.width, original.height, matrix, true)
+                    }
+
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(bottom = 16.dp)
+                    ) {
+                        Image(
+                            bitmap = bitmap.asImageBitmap(),
+                            contentDescription = "Selected item",
+                            modifier = Modifier.size(100.dp)
+                        )
+
+                        IconButton(onClick = { onClearSelection() }) {
+                            Icon(Icons.Default.Close, contentDescription = "Clear selection")
+                        }
+                    }
+                }
+            }
+
             // 🆕 User prompt input (moved above)
             Text("Optional: type a style preference below:")
             Spacer(modifier = Modifier.height(8.dp))
