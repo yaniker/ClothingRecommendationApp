@@ -126,6 +126,7 @@ fun RecommendationScreen(
     var topItem by remember { mutableStateOf<ClothingItem?>(null) }
     var bottomItem by remember { mutableStateOf<ClothingItem?>(null) }
     var message by remember { mutableStateOf("Tap to get recommendation") }
+    var userPrompt by remember { mutableStateOf("") }
 
     Scaffold(
         topBar = {
@@ -160,76 +161,76 @@ fun RecommendationScreen(
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-        Button(onClick = {
-            val pairs = if (selectedId != null) {
-                getShuffledPairs(items).filter { it.first.id == selectedId || it.second.id == selectedId }
-            } else {
-                getShuffledPairs(items)
-            }
-            var found = false
+            // 🆕 User prompt input (moved above)
+            Text("Optional: type a style preference below:")
+            Spacer(modifier = Modifier.height(8.dp))
+            OutlinedTextField(
+                value = userPrompt,
+                onValueChange = { userPrompt = it },
+                label = { Text("Enter your preference") },
+                modifier = Modifier.fillMaxWidth()
+            )
 
-            for ((top, bottom) in pairs) {
-                val input = floatArrayOf(
-                    colorMap[top.color1]!!.toFloat(), patternMap[top.pattern]!!.toFloat(),
-                    materialMap[top.material]!!.toFloat(), fitMap[top.fit]!!.toFloat(),
-                    colorMap[bottom.color1]!!.toFloat(), patternMap[bottom.pattern]!!.toFloat(),
-                    materialMap[bottom.material]!!.toFloat(), fitMap[bottom.fit]!!.toFloat()
-                )
-                val result = model.predict(input)
-                if (result >= 0.5f) {
-                    topItem = top
-                    bottomItem = bottom
-                    message = "Showing recommended outfit"
-                    found = true
-                    break
+            Spacer(modifier = Modifier.height(24.dp))
+
+            // 🧠 Unified recommendation button
+            Button(onClick = {
+                val pairs = if (selectedId != null) {
+                    getShuffledPairs(items).filter {
+                        it.first.id == selectedId || it.second.id == selectedId
+                    }
+                } else {
+                    getShuffledPairs(items)
                 }
 
+                var filteredPairs = pairs
+
+                if (userPrompt.isNotBlank()) {
+                    // TODO: Add AWS LLM API call here and update filteredPairs
+                    message = "Sending prompt to LLM backend: \"$userPrompt\""
+                    // You'll replace this with real filtered results once backend is connected
+                }
+
+                var found = false
+
+                for ((top, bottom) in filteredPairs) {
+                    val input = floatArrayOf(
+                        colorMap[top.color1]!!.toFloat(), patternMap[top.pattern]!!.toFloat(),
+                        materialMap[top.material]!!.toFloat(), fitMap[top.fit]!!.toFloat(),
+                        colorMap[bottom.color1]!!.toFloat(), patternMap[bottom.pattern]!!.toFloat(),
+                        materialMap[bottom.material]!!.toFloat(), fitMap[bottom.fit]!!.toFloat()
+                    )
+                    val result = model.predict(input)
+                    if (result >= 0.5f) {
+                        topItem = top
+                        bottomItem = bottom
+                        message = "Showing recommended outfit"
+                        found = true
+                        break
+                    }
+                }
+
+                if (!found) {
+                    message = "No recommended combinations found"
+                    topItem = null
+                    bottomItem = null
+                }
+            }) {
+                Text("Get Recommendation")
             }
 
-            if (!found) {
-                message = "No recommended combinations found"
-                topItem = null
-                bottomItem = null
+            Spacer(modifier = Modifier.height(20.dp))
+            Text(message)
+
+            topItem?.let {
+                Spacer(modifier = Modifier.height(10.dp))
+                ImageFromAssets(fileName = "${it.type}/${it.id}.jpeg")
             }
-        }) {
-            Text("Get Recommendation")
-        }
 
-        Spacer(modifier = Modifier.height(20.dp))
-        Text(message)
-
-        topItem?.let {
-            ImageFromAssets(fileName = "${it.type}/${it.id}.jpeg")
-        }
-
-        Spacer(modifier = Modifier.height(32.dp))
-
-        Text("Or type a style preference below:")
-
-        var userPrompt by remember { mutableStateOf("") }
-
-        Spacer(modifier = Modifier.height(8.dp))
-
-        OutlinedTextField(
-            value = userPrompt,
-            onValueChange = { userPrompt = it },
-            label = { Text("Enter your preference") },
-            modifier = Modifier.fillMaxWidth()
-        )
-
-        Spacer(modifier = Modifier.height(8.dp))
-
-        Button(onClick = {
-            // TODO: API call with userPrompt
-            message = "Processing preference: $userPrompt"
-        }) {
-            Text("Send")
-        }
-
-        bottomItem?.let {
-            Spacer(modifier = Modifier.height(10.dp))
-            ImageFromAssets(fileName = "${it.type}/${it.id}.jpeg")
-        }
+            bottomItem?.let {
+                Spacer(modifier = Modifier.height(10.dp))
+                ImageFromAssets(fileName = "${it.type}/${it.id}.jpeg")
+            }
         }
     }
 }
