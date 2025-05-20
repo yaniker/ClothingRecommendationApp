@@ -202,6 +202,30 @@ fun RecommendationScreen(
             ImageFromAssets(fileName = "${it.type}/${it.id}.jpeg")
         }
 
+        Spacer(modifier = Modifier.height(32.dp))
+
+        Text("Or type a style preference below:")
+
+        var userPrompt by remember { mutableStateOf("") }
+
+        Spacer(modifier = Modifier.height(8.dp))
+
+        OutlinedTextField(
+            value = userPrompt,
+            onValueChange = { userPrompt = it },
+            label = { Text("Enter your preference") },
+            modifier = Modifier.fillMaxWidth()
+        )
+
+        Spacer(modifier = Modifier.height(8.dp))
+
+        Button(onClick = {
+            // TODO: API call with userPrompt
+            message = "Processing preference: $userPrompt"
+        }) {
+            Text("Send")
+        }
+
         bottomItem?.let {
             Spacer(modifier = Modifier.height(10.dp))
             ImageFromAssets(fileName = "${it.type}/${it.id}.jpeg")
