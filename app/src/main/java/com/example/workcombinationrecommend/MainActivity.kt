@@ -167,7 +167,7 @@ fun RecommendationScreen(
 
     var topItem by remember { mutableStateOf<ClothingItem?>(null) }
     var bottomItem by remember { mutableStateOf<ClothingItem?>(null) }
-    var message by remember { mutableStateOf("Tap to get recommendation") }
+    var message by remember { mutableStateOf("") }
     var userPrompt by remember { mutableStateOf("") }
 
     LaunchedEffect(selectedItem) {
@@ -182,7 +182,6 @@ fun RecommendationScreen(
         } else {
             topItem = null
             bottomItem = null
-            message = "Tap to get recommendation"
         }
     }
 
