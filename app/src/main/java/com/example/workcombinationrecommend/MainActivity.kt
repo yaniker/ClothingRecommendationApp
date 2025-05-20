@@ -32,6 +32,10 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.ui.graphics.Color
 import androidx.compose.runtime.saveable.Saver
+import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.toSize
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.runtime.saveable.mapSaver
 
 val ClothingItemSaver: Saver<ClothingItem?, Map<String, Any>> = Saver(
@@ -164,6 +168,25 @@ fun RecommendationScreen(
 {
     val context = LocalContext.current
     val items = remember { loadClothingData(context) }
+    val imageSize = remember { mutableStateOf(0.dp) }
+    val density = LocalDensity.current
+
+    val boxModifier = if (imageSize.value > 0.dp) {
+        Modifier
+            .width(imageSize.value)
+            .aspectRatio(1f)
+    } else {
+        Modifier
+            .fillMaxWidth()
+            .onGloballyPositioned { coords ->
+                with(density) {
+                    val measured = coords.size.width.toDp()
+                    if (measured > imageSize.value) {
+                        imageSize.value = measured
+                    }
+                }
+            }
+    }
 
     var topItem by remember { mutableStateOf<ClothingItem?>(null) }
     var bottomItem by remember { mutableStateOf<ClothingItem?>(null) }
@@ -271,7 +294,7 @@ fun RecommendationScreen(
 
             topItem?.let { item ->
                 Spacer(modifier = Modifier.height(10.dp))
-                Box {
+                Box(modifier = boxModifier) {
                     ImageFromAssets(fileName = "${item.type}/${item.id}.jpeg")
                     if (item.id == selectedItem?.id) {
                         IconButton(
@@ -292,7 +315,7 @@ fun RecommendationScreen(
 
             bottomItem?.let { item ->
                 Spacer(modifier = Modifier.height(10.dp))
-                Box {
+                Box(modifier = boxModifier) {
                     ImageFromAssets(fileName = "${item.type}/${item.id}.jpeg")
                     if (item.id == selectedItem?.id) {
                         IconButton(
