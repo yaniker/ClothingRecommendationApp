@@ -28,6 +28,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.Scaffold
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.navigation.navArgument
 import androidx.compose.material.icons.filled.ArrowBack
 
@@ -92,20 +93,17 @@ class MainActivity : ComponentActivity() {
         setContent {
             WorkCombinationRecommendTheme {
                 val navController = rememberNavController()
+                var selectedId by rememberSaveable { mutableStateOf<String?>(null) }
 
                 NavHost(navController = navController, startDestination = "recommendation") {
-                    composable("recommendation?selected={selected}",
-                        arguments = listOf(navArgument("selected") {
-                            nullable = true
-                            defaultValue = null
-                        })
-                    ) { backStackEntry ->
-                        val selectedId = backStackEntry.arguments?.getString("selected")
-                        RecommendationScreen(outfitModel, navController, selectedId)
+                    composable("recommendation") {
+                        RecommendationScreen(outfitModel, navController, selectedId) // pass state directly
                     }
-
                     composable("wardrobe") {
-                        WardrobeScreen(navController)
+                        WardrobeScreen(navController, onConfirm = { id ->
+                            selectedId = id
+                            navController.popBackStack() // 💥 pop instead of navigate
+                        })
                     }
                 }
             }
@@ -132,16 +130,6 @@ fun RecommendationScreen(
         topBar = {
             TopAppBar(
                 title = { Text("Outfit Recommender") },
-                navigationIcon = {
-                    if (selectedId != null) {
-                        IconButton(onClick = { navController.navigate("wardrobe") }) {
-                            Icon(
-                                imageVector = Icons.Filled.ArrowBack,
-                                contentDescription = "Back to Wardrobe"
-                            )
-                        }
-                    }
-                },
                 actions = {
                     IconButton(onClick = { navController.navigate("wardrobe") }) {
                         Icon(

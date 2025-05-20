@@ -35,7 +35,10 @@ fun loadImageFromAssets(assetManager: android.content.res.AssetManager, path: St
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun WardrobeScreen(navController: NavController) {
+fun WardrobeScreen(
+    navController: NavController,
+    onConfirm: (String) -> Unit
+) {
     val context = LocalContext.current
     val assetManager = context.assets
     val clothingItems = remember { loadClothingData(context) }
@@ -145,7 +148,7 @@ fun WardrobeScreen(navController: NavController) {
             Button(
                 onClick = {
                     selectedId?.let {
-                        navController.navigate("recommendation?selected=$it")
+                        onConfirm(it)
                     }
                 },
                 enabled = selectedId != null,
