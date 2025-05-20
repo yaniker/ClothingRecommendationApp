@@ -179,7 +179,6 @@ fun RecommendationScreen(
                 bottomItem = selectedItem
                 topItem = null
             }
-            message = "Waiting for recommendation..."
         } else {
             topItem = null
             bottomItem = null
@@ -212,7 +211,6 @@ fun RecommendationScreen(
         ) {
 
             // 🆕 User prompt input (moved above)
-            Text("Optional: type a style preference below:")
             Spacer(modifier = Modifier.height(8.dp))
             OutlinedTextField(
                 value = userPrompt,
