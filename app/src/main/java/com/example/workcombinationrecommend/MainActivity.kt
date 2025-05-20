@@ -30,10 +30,42 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.material.icons.filled.Close
-import androidx.compose.foundation.border
+import androidx.compose.ui.graphics.Color
+import androidx.compose.runtime.saveable.Saver
+import androidx.compose.runtime.saveable.mapSaver
 
-import androidx.navigation.navArgument
-import androidx.compose.material.icons.filled.ArrowBack
+val ClothingItemSaver: Saver<ClothingItem?, Map<String, Any>> = Saver(
+    save = { item ->
+        item?.let {
+            mapOf(
+                "id" to it.id,
+                "type" to it.type,
+                "color1" to it.color1,
+                "color2" to it.color2,
+                "pattern" to it.pattern,
+                "dress_code" to it.dress_code,
+                "material" to it.material,
+                "seasonality" to it.seasonality,
+                "fit" to it.fit
+            )
+        }
+    },
+    restore = { map ->
+        map?.let {
+            ClothingItem(
+                id = it["id"] as String,
+                type = it["type"] as String,
+                color1 = it["color1"] as String,
+                color2 = it["color2"] as String,
+                pattern = it["pattern"] as String,
+                dress_code = it["dress_code"] as String,
+                material = it["material"] as String,
+                seasonality = it["seasonality"] as String,
+                fit = it["fit"] as String
+            )
+        }
+    }
+)
 
 fun loadClothingData(context: Context): List<ClothingItem> {
     val json = context.assets.open("attributes_new.json").bufferedReader().use { it.readText() }
@@ -96,21 +128,23 @@ class MainActivity : ComponentActivity() {
         setContent {
             WorkCombinationRecommendTheme {
                 val navController = rememberNavController()
-                var selectedId by rememberSaveable { mutableStateOf<String?>(null) }
+                val selectedItemState = rememberSaveable(stateSaver = ClothingItemSaver) {
+                    mutableStateOf<ClothingItem?>(null)
+                }
 
                 NavHost(navController = navController, startDestination = "recommendation") {
                     composable("recommendation") {
                         RecommendationScreen(
                             model = outfitModel,
                             navController = navController,
-                            selectedId = selectedId,
-                            onClearSelection = { selectedId = null } // ✅ This is now the mutation source
+                            selectedItem = selectedItemState.value,
+                            onClearSelection = { selectedItemState.value = null }
                         )
                     }
                     composable("wardrobe") {
-                        WardrobeScreen(navController, onConfirm = { id ->
-                            selectedId = id
-                            navController.popBackStack() // 💥 pop instead of navigate
+                        WardrobeScreen(navController, onConfirm = { item ->
+                            selectedItemState.value = item
+                            navController.popBackStack()
                         })
                     }
                 }
@@ -124,9 +158,10 @@ class MainActivity : ComponentActivity() {
 fun RecommendationScreen(
     model: OutfitModel,
     navController: NavController,
-    selectedId: String?,
+    selectedItem: ClothingItem?,
     onClearSelection: () -> Unit
-){
+)
+{
     val context = LocalContext.current
     val items = remember { loadClothingData(context) }
 
@@ -134,6 +169,23 @@ fun RecommendationScreen(
     var bottomItem by remember { mutableStateOf<ClothingItem?>(null) }
     var message by remember { mutableStateOf("Tap to get recommendation") }
     var userPrompt by remember { mutableStateOf("") }
+
+    LaunchedEffect(selectedItem) {
+        if (selectedItem != null) {
+            if (selectedItem.type == "top") {
+                topItem = selectedItem
+                bottomItem = null
+            } else {
+                bottomItem = selectedItem
+                topItem = null
+            }
+            message = "Waiting for recommendation..."
+        } else {
+            topItem = null
+            bottomItem = null
+            message = "Tap to get recommendation"
+        }
+    }
 
     Scaffold(
         topBar = {
@@ -158,38 +210,6 @@ fun RecommendationScreen(
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            // 👕 Show selected item (if any) above the prompt
-            selectedId?.let { id ->
-                val selectedItem = items.find { it.id == id }
-                selectedItem?.let { item ->
-                    val context = LocalContext.current
-                    val assetManager = context.assets
-                    val bitmap = remember(item.id) {
-                        val input = assetManager.open("${item.type}/${item.id}.jpeg")
-                        val original = BitmapFactory.decodeStream(input)
-                        val matrix = android.graphics.Matrix().apply { postRotate(90f) }
-                        Bitmap.createBitmap(original, 0, 0, original.width, original.height, matrix, true)
-                    }
-
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(bottom = 16.dp)
-                    ) {
-                        Image(
-                            bitmap = bitmap.asImageBitmap(),
-                            contentDescription = "Selected item",
-                            modifier = Modifier.size(100.dp)
-                        )
-
-                        IconButton(onClick = { onClearSelection() }) {
-                            Icon(Icons.Default.Close, contentDescription = "Clear selection")
-                        }
-                    }
-                }
-            }
 
             // 🆕 User prompt input (moved above)
             Text("Optional: type a style preference below:")
@@ -205,25 +225,21 @@ fun RecommendationScreen(
 
             // 🧠 Unified recommendation button
             Button(onClick = {
-                val pairs = if (selectedId != null) {
-                    getShuffledPairs(items).filter {
-                        it.first.id == selectedId || it.second.id == selectedId
-                    }
+                val candidates = if (selectedItem != null) {
+                    if (selectedItem.type == "top") {
+                        val bottoms = items.filter { it.type == "bottom" }
+                        bottoms.map { bottom -> Pair(selectedItem, bottom) }
+                    } else {
+                        val tops = items.filter { it.type == "top" }
+                        tops.map { top -> Pair(top, selectedItem) }
+                    }.shuffled()
                 } else {
                     getShuffledPairs(items)
                 }
 
-                var filteredPairs = pairs
-
-                if (userPrompt.isNotBlank()) {
-                    // TODO: Add AWS LLM API call here and update filteredPairs
-                    message = "Sending prompt to LLM backend: \"$userPrompt\""
-                    // You'll replace this with real filtered results once backend is connected
-                }
-
                 var found = false
 
-                for ((top, bottom) in filteredPairs) {
+                for ((top, bottom) in candidates) {
                     val input = floatArrayOf(
                         colorMap[top.color1]!!.toFloat(), patternMap[top.pattern]!!.toFloat(),
                         materialMap[top.material]!!.toFloat(), fitMap[top.fit]!!.toFloat(),
@@ -234,16 +250,20 @@ fun RecommendationScreen(
                     if (result >= 0.5f) {
                         topItem = top
                         bottomItem = bottom
-                        message = "Showing recommended outfit"
+                        message = "Recommended combination"
                         found = true
                         break
                     }
                 }
 
                 if (!found) {
-                    message = "No recommended combinations found"
-                    topItem = null
-                    bottomItem = null
+                    message = "No suitable pair found"
+                    if (selectedItem?.type == "top") bottomItem = null
+                    else if (selectedItem?.type == "bottom") topItem = null
+                    else {
+                        topItem = null
+                        bottomItem = null
+                    }
                 }
             }) {
                 Text("Get Recommendation")
@@ -252,14 +272,46 @@ fun RecommendationScreen(
             Spacer(modifier = Modifier.height(20.dp))
             Text(message)
 
-            topItem?.let {
+            topItem?.let { item ->
                 Spacer(modifier = Modifier.height(10.dp))
-                ImageFromAssets(fileName = "${it.type}/${it.id}.jpeg")
+                Box {
+                    ImageFromAssets(fileName = "${item.type}/${item.id}.jpeg")
+                    if (item.id == selectedItem?.id) {
+                        IconButton(
+                            onClick = { onClearSelection() },
+                            modifier = Modifier
+                                .align(Alignment.TopEnd)
+                                .padding(8.dp)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Close,
+                                contentDescription = "Clear selection",
+                                tint = Color.Red
+                            )
+                        }
+                    }
+                }
             }
 
-            bottomItem?.let {
+            bottomItem?.let { item ->
                 Spacer(modifier = Modifier.height(10.dp))
-                ImageFromAssets(fileName = "${it.type}/${it.id}.jpeg")
+                Box {
+                    ImageFromAssets(fileName = "${item.type}/${item.id}.jpeg")
+                    if (item.id == selectedItem?.id) {
+                        IconButton(
+                            onClick = { onClearSelection() },
+                            modifier = Modifier
+                                .align(Alignment.TopEnd)
+                                .padding(8.dp)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Close,
+                                contentDescription = "Clear selection",
+                                tint = Color.Red
+                            )
+                        }
+                    }
+                }
             }
         }
     }

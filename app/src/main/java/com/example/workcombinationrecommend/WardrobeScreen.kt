@@ -37,7 +37,7 @@ fun loadImageFromAssets(assetManager: android.content.res.AssetManager, path: St
 @Composable
 fun WardrobeScreen(
     navController: NavController,
-    onConfirm: (String) -> Unit
+    onConfirm: (ClothingItem) -> Unit
 ) {
     val context = LocalContext.current
     val assetManager = context.assets
@@ -147,8 +147,11 @@ fun WardrobeScreen(
 
             Button(
                 onClick = {
-                    selectedId?.let {
-                        onConfirm(it)
+                    selectedId?.let { id ->
+                        val item = clothingItems.find { it.id == id }
+                        if (item != null) {
+                            onConfirm(item)
+                        }
                     }
                 },
                 enabled = selectedId != null,
