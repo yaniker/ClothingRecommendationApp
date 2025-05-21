@@ -245,17 +245,39 @@ fun RecommendationScreen(
 
             // 🧠 Unified recommendation button
             Button(onClick = {
-                val candidates = if (selectedItem != null) {
-                    if (selectedItem.type == "top") {
-                        val bottoms = items.filter { it.type == "bottom" }
-                        bottoms.map { bottom -> Pair(selectedItem, bottom) }
-                    } else {
-                        val tops = items.filter { it.type == "top" }
-                        tops.map { top -> Pair(top, selectedItem) }
-                    }.shuffled()
-                } else {
-                    getShuffledPairs(items)
+                val prompt = userPrompt.trim().lowercase()
+                val topPrefix = "top:"
+                val bottomPrefix = "bottom:"
+
+                val promptTopAttrs: List<String>
+                val promptBottomAttrs: List<String>
+
+                val hasTopPrompt = prompt.startsWith(topPrefix)
+                val hasBottomPrompt = prompt.startsWith(bottomPrefix)
+
+                promptTopAttrs = if (hasTopPrompt) {
+                    prompt.removePrefix(topPrefix).split(",").map { it.trim() }.filter { it.isNotEmpty() }
+                } else emptyList()
+
+                promptBottomAttrs = if (hasBottomPrompt) {
+                    prompt.removePrefix(bottomPrefix).split(",").map { it.trim() }.filter { it.isNotEmpty() }
+                } else emptyList()
+
+                val tops = when {
+                    selectedItem?.type == "top" -> listOf(selectedItem)
+                    promptTopAttrs.isNotEmpty() -> items.filter { it.type == "top" && itemMatchesPrompt(it, promptTopAttrs) }
+                    else -> items.filter { it.type == "top" }
                 }
+
+                val bottoms = when {
+                    selectedItem?.type == "bottom" -> listOf(selectedItem)
+                    promptBottomAttrs.isNotEmpty() -> items.filter { it.type == "bottom" && itemMatchesPrompt(it, promptBottomAttrs) }
+                    else -> items.filter { it.type == "bottom" }
+                }
+
+                val candidates = tops.flatMap { top ->
+                    bottoms.map { bottom -> Pair(top, bottom) }
+                }.shuffled()
 
                 var found = false
 
@@ -336,3 +358,19 @@ fun RecommendationScreen(
         }
     }
 }
+
+fun itemMatchesPrompt(item: ClothingItem, attributes: List<String>): Boolean {
+    val attrs = listOf(
+        item.color1,
+        item.color2,
+        item.pattern,
+        item.material,
+        item.seasonality,
+        item.dress_code,
+        item.fit
+    ).map { it.lowercase().trim() }
+
+    return attributes.all { token -> token in attrs }
+}
+
+
