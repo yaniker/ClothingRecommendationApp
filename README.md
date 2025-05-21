@@ -51,10 +51,3 @@ These results indicate that the system meets the user’s requirements with perf
 # License
 
 This project is proprietary. All rights reserved. Commercial use is not permitted without prior written consent.
-
-# Notes
-
-This project could be a great gift for your partner/friend so if you would like to use it for that end only, you have my blessings. You will need:  
-1. Your own OpenAI API or open-source ViT and LLM.
-2. Your own assets.
-3. DNN trained on your assets.
