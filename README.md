@@ -23,6 +23,12 @@ Resulting DNN is converted to TensorFlow Lite and integrated into an Android app
 ### Recommended with User Preferred Item
 <img src="screenshots/Screenshot_4.png" width="250"/>
 
+### Recommended with User Prompt (Demo)
+<img src="screenshots/Screenshot_5.png" width="250"/>
+
+### Recommended with User Preferred Item and Prompt Together (Demo)
+<img src="screenshots/Screenshot_6.png" width="250"/>
+
 ## Data Flow
 
 Images are preprocessed and passed to a ViT + LLM, which returns structured JSON attributes.  
