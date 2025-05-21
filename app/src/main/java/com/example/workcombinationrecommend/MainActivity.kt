@@ -33,10 +33,7 @@ import androidx.compose.material.icons.filled.Close
 import androidx.compose.ui.graphics.Color
 import androidx.compose.runtime.saveable.Saver
 import androidx.compose.ui.layout.onGloballyPositioned
-import androidx.compose.ui.unit.Dp
-import androidx.compose.ui.unit.toSize
 import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.runtime.saveable.mapSaver
 
 val ClothingItemSaver: Saver<ClothingItem?, Map<String, Any>> = Saver(
     save = { item ->
