@@ -1,4 +1,4 @@
-<img src="assets/ic_launcher-playstore.png" alt="App Logo" width="150"/>
+<img src="app/src/main/ic_launcher-playstore.png" alt="App Logo" width="150"/>
 
 # Clothing Recommendation App
 
