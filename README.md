@@ -1,3 +1,5 @@
+<img src="assets/ic_launcher-playstore.png" alt="App Logo" width="150"/>
+
 # Clothing Recommendation App
 
 This is the demo version for showcasing, developed for a specific user and is a work in progress based on the user feedback.
